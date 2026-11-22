@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mines Bot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --primary-blue: #3b82f6;
+            --text-main: #333333;
+            --text-muted: #888888;
+            --nav-bg: #ffffff;
+            --nav-active: #3b82f6;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            padding-bottom: 70px; /* Место для нижней навигации */
+            color: var(--text-main);
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Шапка профиля */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: var(--bg-color);
+        }
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ccc;
+            object-fit: cover;
+        }
+        .user-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .lang-selector {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--card-bg);
+            padding: 5px 10px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-weight: 600;
+        }
+
+        /* Блок баланса */
+        .balance-card {
+            background: linear-gradient(135deg, #4f8dfd 0%, #2563eb 100%);
+            margin: 0 20px;
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        }
+        /* Имитация пузырьков на фоне (для красоты) */
+        .balance-card::before {
+            content: '💣';
+            position: absolute;
+            font-size: 100px;
+            opacity: 0.1;
+            right: -10px;
+            top: -20px;
+            transform: rotate(20deg);
+        }
+        .balance-title {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        .balance-value {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .balance-sub {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .add-balance-btn {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* Заголовки секций */
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 25px 20px 15px 20px;
+        }
+
+        /* Недавние игры */
+        .recent-games {
+            display: flex;
+            gap: 10px;
+            padding: 0 20px;
+        }
+        .game-card {
+            flex: 1;
+            height: 80px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .game-mines {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+        .game-21 {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+        }
+        .game-icon {
+            font-size: 40px;
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            opacity: 0.3;
+        }
+
+        /* Бонусы */
+        .bonus-list {
+            margin: 0 20px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 10px 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .bonus-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .bonus-item:last-child {
+            border-bottom: none;
+        }
+        .bonus-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .bonus-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .icon-purple { background: #f3e8ff; color: #9333ea; }
+        .icon-pink { background: #fce7f3; color: #db2777; }
+        
+        .bonus-text h4 {
+            margin: 0;
+            font-size: 16px;
+        }
+        .bonus-text p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .bonus-btns {
+            display: flex;
+            gap: 8px;
+        }
+        .btn {
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-blue { background: #0ea5e9; }
+        .btn-pink { background: #e11d48; }
+        .btn-ad {
+            background: white;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 2px 5px;
+            font-size: 10px;
+            border-radius: 4px;
+        }
+
+        /* Нижняя навигация */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: var(--nav-bg);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 10px;
+            gap: 4px;
+            cursor: pointer;
+            flex: 1;
+            height: 100%;
+        }
+        .nav-item.active {
+            color: var(--nav-active);
+            background: #eff6ff;
+            border-radius: 12px;
+            margin: 5px;
+            height: calc(100% - 10px);
+        }
+        .nav-icon {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Шапка -->
+    <div class="header">
+        <div class="profile-info">
+            <img id="user-avatar" class="avatar" src="https://via.placeholder.com/40" alt="Avatar">
+            <div id="user-name" class="user-name">Загрузка...</div>
+        </div>
+        <div class="lang-selector">
+            <span>🇷🇺</span> ▼
+        </div>
+    </div>
+
+    <!-- Блок баланса -->
+    <div class="balance-card">
+        <div class="balance-title">Ваш баланс:</div>
+        <div class="balance-value">0 mCoin</div>
+        <div class="balance-sub">0 GMP</div>
+        <div class="add-balance-btn">+</div>
+    </div>
+
+    <!-- Недавние игры -->
+    <div class="section-title">Недавние игры</div>
+    <div class="recent-games">
+        <div class="game-card game-mines">
+            Mines
+            <div class="game-icon">💣</div>
+        </div>
+        <div class="game-card game-21">
+            21
+            <div class="game-icon">🃏</div>
+        </div>
+    </div>
+
+    <!-- Бонусы -->
+    <div class="section-title">Бонусы</div>
+    <div class="bonus-list">
+        
+        <div class="bonus-item">
+            <div class="bonus-info">
+                <div class="bonus-icon icon-purple">🎁</div>
+                <div class="bonus-text">
+                    <h4>Бонус</h4>
+                    <p>Доступен раз в час</p>
+                </div>
+            </div>
+            <div class="bonus-btns">
+                <button class="btn btn-blue">Собрать</button>
+                <button class="btn btn-pink">X2 <span class="btn-ad">AD</span></button>
+            </div>
+        </div>
+
+        <div class="bonus-item">
+            <div class="bonus-info">
+                <div class="bonus-icon icon-pink">🎁</div>
+                <div class="bonus-text">
+                    <h4>Бонус от спонсора</h4>
+                    <p>За просмотр рекламы</p>
+                </div>
+            </div>
+            <div class="bonus-btns">
+                <button class="btn btn-blue">Собрать <span class="btn-ad">AD</span></button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Нижняя навигация -->
+    <div class="bottom-nav">
+        <div class="nav-item active">
+            <span class="nav-icon">🏠</span>
+            <span>Главная</span>
+        </div>
+        <div class="nav-item">
+            <span class="nav-icon">📋</span>
+            <span>Задания</span>
+        </div>
+        <div class="nav-item">
+            <span class="nav-icon">🎮</span>
+            <span>Играть</span>
+        </div>
+        <div class="nav-item">
+            <span class="nav-icon">🏆</span>
+            <span>Рейтинг</span>
+        </div>
+        <div class="nav-item">
+            <span class="nav-icon">👥</span>
+            <span>Приглашай</span>
+        </div>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.ready();
+
+        let user = tg.initDataUnsafe?.user;
+        
+        if (user) {
+            document.getElementById('user-name').innerText = user.first_name;
+            if (user.photo_url) {
+                document.getElementById('user-avatar').src = user.photo_url;
+            }
+        } else {
+            document.getElementById('user-name').innerText = "Гость";
+        }
+    </script>
+</body>
+</html>
