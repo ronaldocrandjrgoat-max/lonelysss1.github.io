@@ -124,8 +124,8 @@
                 })
                 .catch(err => {
                     console.error("Ошибка загрузки:", err);
-                    document.getElementById('user-balance').innerText = "💰 Баланс: нет связи с ботом";
-                    document.getElementById('user-bank').innerText = "🏦 Банк: нет связи с ботом";
+                    document.getElementById('user-balance').innerText = "💰 Баланс: 0";
+                    document.getElementById('user-bank').innerText = "🏦 Банк: 0";
                 });
         } else {
             document.getElementById('user-name').innerText = "Пользователь не найден";
