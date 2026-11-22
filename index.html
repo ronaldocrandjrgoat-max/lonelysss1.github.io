@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Мой профиль</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .menu {
+            width: 100%;
+            max-width: 400px;
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .profile {
+            width: 100%;
+            max-width: 400px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #ccc;
+            margin: 0 auto 15px auto;
+            object-fit: cover;
+        }
+        .name { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .username { color: #666; margin-bottom: 10px; }
+        .id { font-size: 12px; color: #999; }
+    </style>
+</head>
+<body>
+
+    <div class="menu">Главное меню</div>
+
+    <div class="profile">
+        <img id="user-photo" class="avatar" src="" alt="Аватарка">
+        <div id="user-name" class="name">Загрузка...</div>
+        <div id="user-username" class="username"></div>
+        <div id="user-id" class="id"></div>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.ready();
+        
+        let user = tg.initDataUnsafe?.user;
+        
+        if (user) {
+            document.getElementById('user-name').innerText = user.first_name;
+            
+            if (user.username) {
+                document.getElementById('user-username').innerText = '@' + user.username;
+            }
+            
+            document.getElementById('user-id').innerText = 'ID: ' + user.id;
+            
+            if (user.photo_url) {
+                document.getElementById('user-photo').src = user.photo_url;
+            }
+        } else {
+            document.getElementById('user-name').innerText = "Пользователь не найден";
+        }
+    </script>
+</body>
+</html>
