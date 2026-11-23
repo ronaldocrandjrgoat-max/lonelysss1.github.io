@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#101114">
+    <title>VIRT — Личный кабинет</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 16px;
+            background:
+                radial-gradient(ellipse at 50% -15%, #29265b 0%, transparent 48%),
+                #101114;
+            color: #f5f5f5;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        button {
+            font: inherit;
+            border: none;
+            cursor: pointer;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+        }
+
+        .logo {
+            font-size: 29px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            background: linear-gradient(110deg, #ffffff, #9290ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-label {
+            color: #85858d;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        .card {
+            background: linear-gradient(145deg, #1c1d25, #17181e);
+            border: 1px solid #30313d;
+            border-radius: 19px;
+            padding: 17px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 25px #0002;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 800;
+            margin: 0 0 14px;
+        }
+
+        .muted {
+            color: #85858d;
+            font-size: 13px;
+        }
+
+        /* ПРОФИЛЬ */
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #292a32;
+            border: 2px solid #7770ff;
+            box-shadow: 0 0 15px #7770ff55;
+        }
+
+        .profile-name {
+            font-size: 17px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .profile-id {
+            color: #85858d;
+            font-size: 12px;
+        }
+
+        /* БАЛАНСЫ */
+
+        .balance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .balance-item {
+            background: linear-gradient(145deg, #252630, #1d1e26);
+            border: 1px solid #30313b;
+            border-radius: 14px;
+            padding: 14px;
+            min-width: 0;
+            transition: .2s;
+        }
+
+        .balance-label {
+            color: #92929c;
+            font-size: 12px;
+            margin-bottom: 9px;
+        }
+
+        .balance-value {
+            font-size: 19px;
+            font-weight: 900;
+            overflow-wrap: anywhere;
+        }
+
+        .balance-icon {
+            font-size: 21px;
+            margin-bottom: 8px;
+        }
+
+        /* БОНУС */
+
+        .bonus-card {
+            background:
+                radial-gradient(circle at 100% 0%, #5146a844, transparent 48%),
+                linear-gradient(135deg, #24234b, #191a20);
+            border: 1px solid #49458a;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bonus-card::after {
+            content: "🎁";
+            position: absolute;
+            right: 13px;
+            top: 10px;
+            font-size: 42px;
+            opacity: .10;
+            pointer-events: none;
+        }
+
+        .bonus-description,
+        .roulette-description {
+            color: #a2a2b2;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .bonus-timer {
+            font-size: 25px;
+            font-weight: 900;
+            margin-bottom: 13px;
+            color: #c3bfff;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .main-button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            background: linear-gradient(110deg, #6963ff, #8b68ff);
+            color: white;
+            font-weight: 800;
+            font-size: 15px;
+            box-shadow: 0 5px 15px #7165ff33;
+            transition: transform .15s, opacity .15s;
+        }
+
+        .main-button:active:not(:disabled) {
+            transform: scale(.98);
+        }
+
+        .main-button:disabled {
+            opacity: .45;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .bonus-button {
+            background: linear-gradient(110deg, #756aff, #a16bff);
+        }
+
+        .bonus-message,
+        .roulette-message {
+            font-size: 13px;
+            margin-top: 11px;
+            min-height: 16px;
+            color: #c5c4ff;
+            line-height: 1.5;
+        }
+
+        .bonus-message:not(:empty) {
+            background: #7770ff16;
+            border: 1px solid #7770ff35;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        /* РУЛЕТКА */
+
+        .roulette-card {
+            overflow: hidden;
+        }
+
+        .roulette-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 0 15px;
+        }
+
+        .roulette-frame {
+            position: relative;
+            width: min(290px, 82vw);
+            aspect-ratio: 1 / 1;
+        }
+
+        .roulette-pointer {
+            position: absolute;
+            z-index: 5;
+            top: -7px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 13px solid transparent;
+            border-right: 13px solid transparent;
+            border-top: 25px solid #ffffff;
+            filter: drop-shadow(0 2px 4px #000);
+        }
+
+        .roulette-wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 7px solid #34343e;
+            box-shadow: 0 0 25px #0008;
+            background: #22232a;
+        }
+
+        #rouletteCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .roulette-center {
+            position: absolute;
+            z-index: 4;
+            width: 55px;
+            height: 55px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: #17181d;
+            border: 5px solid #7770ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 13px;
+            box-shadow: 0 0 15px #7770ff55;
+        }
+
+        .roulette-timer {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 900;
+            margin: 5px 0 14px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .roulette-button {
+            background: linear-gradient(110deg, #e0a52e, #ffcf62);
+            color: #17130a;
+            box-shadow: 0 5px 15px #e0a52e33;
+        }
+
+        /* ТОП ИГРОКОВ */
+
+        .top-card {
+            background:
+                radial-gradient(circle at 50% 0%, #5c4b9c22, transparent 55%),
+                linear-gradient(145deg, #1c1d25, #17181e);
+        }
+
+        .top-subtitle {
+            color: #85858d;
+            font-size: 12px;
+            margin-top: -7px;
+            margin-bottom: 17px;
+        }
+
+        .top-podium {
+            display: grid;
+            grid-template-columns: 1fr 1.12fr 1fr;
+            align-items: end;
+            gap: 8px;
+            margin-bottom: 19px;
+        }
+
+        .podium-item {
+            min-width: 0;
+            text-align: center;
+            background: linear-gradient(160deg, #292a36, #20212a);
+            border: 1px solid #393a48;
+            border-radius: 14px;
+            padding: 12px 5px;
+            position: relative;
+        }
+
+        .podium-item.first {
+            border-color: #c99c43;
+            background: linear-gradient(160deg, #493b24, #242127);
+            padding-top: 17px;
+            padding-bottom: 17px;
+        }
+
+        .podium-item.second {
+            border-color: #858c9c;
+        }
+
+        .podium-item.third {
+            border-color: #a66e49;
+        }
+
+        .podium-crown {
+            font-size: 19px;
+            margin-bottom: 5px;
+        }
+
+        .podium-avatar {
+            width: 43px;
+            height: 43px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #34343e;
+            border: 2px solid #7770ff;
+            margin-bottom: 7px;
+        }
+
+        .first .podium-avatar {
+            width: 51px;
+            height: 51px;
+            border-color: #e6b84f;
+        }
+
+        .podium-name {
+            font-size: 11px;
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 6px;
+        }
+
+        .podium-balance {
+            color: #c3bfff;
+            font-size: 10px;
+            font-weight: 800;
+            overflow-wrap: anywhere;
+        }
+
+        .podium-rank {
+            font-size: 11px;
+            font-weight: 900;
+            margin-bottom: 6px;
+            color: #c3c3ce;
+        }
+
+        .first .podium-rank {
+            color: #ffd36b;
+        }
+
+        .top-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .top-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(100deg, #252630, #202128);
+            border: 1px solid #30313b;
+            padding: 10px;
+            border-radius: 12px;
+            min-width: 0;
+            transition: background .2s;
+        }
+
+        .top-number {
+            width: 25px;
+            flex-shrink: 0;
+            color: #a5a5b0;
+            font-weight: 900;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .top-avatar {
+            width: 39px;
+            height: 39px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #34343e;
+            border: 1px solid #484958;
+        }
+
+        .top-user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .top-name {
+            font-size: 13px;
+            font-weight: 800;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-bottom: 4px;
+        }
+
+        .top-user-id {
+            font-size: 10px;
+            color: #85858d;
+        }
+
+        .top-balance {
+            font-size: 11px;
+            font-weight: 900;
+            color: #c3bfff;
+            text-align: right;
+            overflow-wrap: anywhere;
+            max-width: 100px;
+        }
+
+        .empty-list {
+            color: #85858d;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 13px;
+        }
+
+        .footer {
+            color: #62626c;
+            font-size: 11px;
+            text-align: center;
+            padding: 12px 0 25px;
+            letter-spacing: .5px;
+        }
+
+        @media (max-width: 350px) {
+            body {
+                padding: 11px;
+            }
+
+            .podium-item {
+                padding-left: 3px;
+                padding-right: 3px;
+            }
+
+            .podium-name {
+                font-size: 10px;
+            }
+
+            .podium-balance {
+                font-size: 9px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="header">
+            <div class="logo">VIRT</div>
+            <div class="header-label">ЛИЧНЫЙ КАБИНЕТ</div>
+        </div>
+
+        <!-- Загрузка -->
+        <div id="loadingScreen" class="card">
+            <div class="section-title">Загрузка VIRT...</div>
+            <div class="muted">Подключение к аккаунту...</div>
+        </div>
+
+        <!-- Ошибка -->
+        <div id="errorScreen" class="card" style="display:none;">
+            <div class="section-title">Не удалось загрузить аккаунт</div>
+
+            <div id="errorMessage" class="muted">
+                Попробуй открыть Mini App ещё раз.
+            </div>
+
+            <button
+                class="main-button"
+                style="margin-top:15px;"
+                onclick="initializeApp()"
+            >
+                Повторить
+            </button>
+        </div>
+
+        <!-- Личный кабинет -->
+        <div id="profileScreen" style="display:none;">
+
+            <!-- Профиль -->
+            <div class="card">
+                <div class="profile">
+
+                    <img
+                        id="avatar"
+                        class="avatar"
+                        src=""
+                        alt="Avatar"
+                    >
+
+                    <div>
+                        <div id="userName" class="profile-name">
+                            Пользователь
+                        </div>
+
+                        <div class="profile-id">
+                            ID: <span id="userId">—</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Балансы -->
+            <div class="card">
+                <div class="section-title">💼 Мои балансы</div>
+
+                <div class="balance-grid">
+
+                    <div class="balance-item">
+                        <div class="balance-icon">💰</div>
+                        <div class="balance-label">Баланс</div>
+                        <div id="balance" class="balance-value">0</div>
+                    </div>
+
+                    <div class="balance-item">
+                        <div class="balance-icon">🏦</div>
+                        <div class="balance-label">Банк</div>
+                        <div id="bankBalance" class="balance-value">0</div>
+                    </div>
+
+                    <div class="balance-item">
+                        <div class="balance-icon">💎</div>
+                        <div class="balance-label">Донат-коины</div>
+                        <div id="rubs" class="balance-value">0</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Ежечасный бонус -->
+            <div class="card bonus-card">
+
+                <div class="section-title">
+                    🎁 Ежечасный бонус
+                </div>
+
+                <div class="bonus-description">
+                    Заходи каждый час и получай приз!
+                </div>
+
+                <div id="bonusTimer" class="bonus-timer">
+                    Загрузка...
+                </div>
+
+                <button
+                    id="bonusButton"
+                    class="main-button bonus-button"
+                    onclick="claimBonus()"
+                    disabled
+                >
+                    Забрать бонус
+                </button>
+
+                <div
+                    id="bonusMessage"
+                    class="bonus-message"
+                ></div>
+
+            </div>
+
+            <!-- Рулетка -->
+            <div class="card roulette-card">
+
+                <div class="section-title">
+                    🎰 Спин рулетка
+                </div>
+
+                <div class="roulette-description">
+                    Испытай удачу и получи приз.
+                    Бесплатный спин доступен раз в 30 минут.
+                </div>
+
+                <div class="roulette-wrapper">
+
+                    <div class="roulette-frame">
+
+                        <div class="roulette-pointer"></div>
+
+                        <div
+                            id="rouletteWheel"
+                            class="roulette-wheel"
+                        >
+                            <canvas
+                                id="rouletteCanvas"
+                                width="600"
+                                height="600"
+                            ></canvas>
+                        </div>
+
+                        <div class="roulette-center">
+                            VIRT
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div
+                    id="rouletteTimer"
+                    class="roulette-timer"
+                >
+                    Загрузка...
+                </div>
+
+                <button
+                    id="rouletteButton"
+                    class="main-button roulette-button"
+                    onclick="spinRoulette()"
+                    disabled
+                >
+                    Крутить рулетку
+                </button>
+
+                <div
+                    id="rouletteMessage"
+                    class="roulette-message"
+                ></div>
+
+            </div>
+
+            <!-- ТОП -->
+            <div class="card top-card">
+
+                <div class="section-title">
+                    🏆 Мировой рейтинг
+                </div>
+
+                <div class="top-subtitle">
+                    Самые богатые игроки VIRT
+                </div>
+
+                <div id="topPodium" class="top-podium"></div>
+
+                <div id="topList" class="top-list">
+                    <div class="empty-list">
+                        Загрузка рейтинга...
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="footer">
+            VIRT © 2026 · OFFICIAL MINI APP
+        </div>
+
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+
+        tg.ready();
+        tg.expand();
+
+        const API_URL = "https://circumstances-uni-found-locked.trycloudflare.com";
+
+        let sessionToken = null;
+
+        let bonusRemaining = 0;
+        let rouletteRemaining = 0;
+
+        let bonusInterval = null;
+        let rouletteInterval = null;
+
+        const ROULETTE_REWARDS = [
+            { amount: 1000, type: "virt" },
+            { amount: 3000, type: "virt" },
+            { amount: 5000, type: "virt" },
+            { amount: 10000, type: "virt" },
+            { amount: 15000, type: "virt" },
+            { amount: 2000, type: "virt" },
+            { amount: 2500, type: "virt" },
+            { amount: 3000, type: "virt" },
+            { amount: 1, type: "dk" },
+            { amount: 2, type: "dk" },
+            { amount: 3, type: "dk" }
+        ];
+
+        function formatNumber(number) {
+            return Number(number || 0).toLocaleString("ru-RU");
+        }
+
+        function formatTime(seconds) {
+            seconds = Math.max(0, Number(seconds) || 0);
+
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+
+            return [
+                String(hours).padStart(2, "0"),
+                String(minutes).padStart(2, "0"),
+                String(secs).padStart(2, "0")
+            ].join(":");
+        }
+
+        function showError(message) {
+            document.getElementById("loadingScreen").style.display = "none";
+            document.getElementById("profileScreen").style.display = "none";
+            document.getElementById("errorScreen").style.display = "block";
+
+            document.getElementById("errorMessage").textContent =
+                message || "Неизвестная ошибка.";
+        }
+
+        function showBonusMessage(message) {
+            document.getElementById("bonusMessage").textContent = message;
+        }
+
+        function showRouletteMessage(message) {
+            document.getElementById("rouletteMessage").textContent = message;
+        }
+
+        // Авторизация через Telegram
+        async function initializeApp() {
+            try {
+                document.getElementById("loadingScreen").style.display = "block";
+                document.getElementById("errorScreen").style.display = "none";
+                document.getElementById("profileScreen").style.display = "none";
+
+                if (!tg.initData) {
+                    throw new Error(
+                        "Открой Mini App через Telegram."
+                    );
+                }
+
+                const response = await fetch(API_URL + "/auth", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        initData: tg.initData
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success || !data.token) {
+                    throw new Error(
+                        data.error || "Ошибка авторизации."
+                    );
+                }
+
+                sessionToken = data.token;
+
+                await loadProfile();
+
+                document.getElementById("loadingScreen").style.display = "none";
+                document.getElementById("errorScreen").style.display = "none";
+                document.getElementById("profileScreen").style.display = "block";
+
+            } catch (error) {
+                console.error("AUTH ERROR:", error);
+                showError(error.message);
+            }
+        }
+
+        // Загрузка профиля
+        async function loadProfile() {
+            const response = await fetch(API_URL + "/me", {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + sessionToken
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.error || "Не удалось загрузить профиль."
+                );
+            }
+
+            const user = tg.initDataUnsafe?.user || {};
+
+            document.getElementById("userName").textContent =
+                user.first_name
+                    ? user.first_name + (user.last_name ? " " + user.last_name : "")
+                    : "Пользователь";
+
+            document.getElementById("userId").textContent =
+                data.user_id || user.id || "—";
+
+            const avatar = document.getElementById("avatar");
+
+            avatar.src = user.photo_url ||
+                "https://ui-avatars.com/api/?name=VIRT&background=292044&color=ffffff";
+
+            avatar.onerror = function () {
+                this.src =
+                    "https://ui-avatars.com/api/?name=VIRT&background=292044&color=ffffff";
+            };
+
+            document.getElementById("balance").textContent =
+                formatNumber(data.balance);
+
+            document.getElementById("bankBalance").textContent =
+                formatNumber(data.bank_balance);
+
+            document.getElementById("rubs").textContent =
+                formatNumber(data.rubs);
+
+            await loadTop();
+            await loadBonusStatus();
+            await loadRouletteStatus();
+        }
+
+        // Обновление балансов
+        async function refreshBalances() {
+            const response = await fetch(API_URL + "/me", {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + sessionToken
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.error || "Не удалось обновить баланс."
+                );
+            }
+
+            document.getElementById("balance").textContent =
+                formatNumber(data.balance);
+
+            document.getElementById("bankBalance").textContent =
+                formatNumber(data.bank_balance);
+
+            document.getElementById("rubs").textContent =
+                formatNumber(data.rubs);
+        }
+
+        // Аватар игрока для рейтинга
+        function createTopAvatar(user) {
+            const img = document.createElement("img");
+
+            img.className = "top-avatar";
+
+            const name = user.name || user.username || "Player";
+
+            img.src = user.photo_url ||
+                "https://ui-avatars.com/api/?name=" +
+                encodeURIComponent(name) +
+                "&background=292044&color=ffffff";
+
+            img.alt = "Avatar";
+
+            img.onerror = function () {
+                this.onerror = null;
+
+                this.src =
+                    "https://ui-avatars.com/api/?name=" +
+                    encodeURIComponent(name) +
+                    "&background=292044&color=ffffff";
+            };
+
+            return img;
+        }
+
+        // Загрузка рейтинга
+        async function loadTop() {
+            const podium = document.getElementById("topPodium");
+            const list = document.getElementById("topList");
+
+            podium.innerHTML = "";
+            list.innerHTML = "";
+
+            try {
+                const response = await fetch(API_URL + "/top", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + sessionToken
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error || "Ошибка загрузки рейтинга."
+                    );
+                }
+
+                const users = Array.isArray(data)
+                    ? data
+                    : (data.users || data.top || []);
+
+                if (!users.length) {
+                    list.textContent = "Пока рейтинг пуст.";
+                    return;
+                }
+
+                // Первые три места
+                const topThree = users.slice(0, 3);
+
+                const podiumOrder = [
+                    { index: 1, className: "second", medal: "🥈" },
+                    { index: 0, className: "first", medal: "🥇" },
+                    { index: 2, className: "third", medal: "🥉" }
+                ];
+
+                podiumOrder.forEach(place => {
+                    const user = topThree[place.index];
+
+                    if (!user) return;
+
+                    const card = document.createElement("div");
+
+                    card.className =
+                        "podium-item " + place.className;
+
+                    const medal = document.createElement("div");
+                    medal.className = "podium-rank";
+                    medal.textContent = place.medal;
+
+                    const avatar = createTopAvatar(user);
+                    avatar.className = "podium-avatar";
+
+                    const name = document.createElement("div");
+                    name.className = "podium-name";
+                    name.textContent =
+                        user.name || user.username || "Игрок";
+
+                    const balance = document.createElement("div");
+                    balance.className = "podium-balance";
+                    balance.textContent =
+                        formatNumber(user.balance) + " вирт";
+
+                    card.appendChild(medal);
+                    card.appendChild(avatar);
+                    card.appendChild(name);
+                    card.appendChild(balance);
+
+                    podium.appendChild(card);
+                });
+
+                // Остальные игроки
+                users.slice(3).forEach((user, index) => {
+                    const item = document.createElement("div");
+                    item.className = "top-item";
+
+                    const number = document.createElement("div");
+                    number.className = "top-number";
+                    number.textContent = (index + 4) + ".";
+
+                    const avatar = createTopAvatar(user);
+
+                    const info = document.createElement("div");
+                    info.className = "top-user-info";
+
+                    const name = document.createElement("div");
+                    name.className = "top-name";
+                    name.textContent =
+                        user.name || user.username || "Игрок";
+
+                    const userId = document.createElement("div");
+                    userId.className = "top-user-id";
+                    userId.textContent =
+                        "ID: " + (user.user_id || "—");
+
+                    info.appendChild(name);
+                    info.appendChild(userId);
+
+                    const balance = document.createElement("div");
+                    balance.className = "top-balance";
+                    balance.textContent =
+                        formatNumber(user.balance);
+
+                    item.appendChild(number);
+                    item.appendChild(avatar);
+                    item.appendChild(info);
+                    item.appendChild(balance);
+
+                    list.appendChild(item);
+                });
+
+                if (users.length <= 3) {
+                    list.textContent = "Это все игроки в рейтинге.";
+                }
+
+            } catch (error) {
+                console.error("TOP ERROR:", error);
+                list.textContent = "Не удалось загрузить рейтинг.";
+            }
+        }
+        // ==============================
+        // ЕЖЕЧАСНЫЙ БОНУС
+        // ==============================
+
+        async function loadBonusStatus() {
+            try {
+                const response = await fetch(API_URL + "/bonus", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + sessionToken
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || "Ошибка бонуса.");
+                }
+
+                bonusRemaining = Number(
+                    data.available_in ?? data.remaining ?? 0
+                );
+
+                updateBonusTimer();
+                startBonusTimer();
+
+            } catch (error) {
+                console.error("BONUS STATUS ERROR:", error);
+                document.getElementById("bonusTimer").textContent =
+                    "Не удалось загрузить таймер";
+            }
+        }
+
+        function updateBonusTimer() {
+            const timer = document.getElementById("bonusTimer");
+            const button = document.getElementById("bonusButton");
+
+            if (bonusRemaining <= 0) {
+                timer.textContent = "🎉 Бонус доступен!";
+                button.disabled = false;
+                button.textContent = "Забрать бонус";
+            } else {
+                timer.textContent = "Следующий бонус через " +
+                    formatTime(bonusRemaining);
+
+                button.disabled = true;
+                button.textContent = "Бонус ещё недоступен";
+            }
+        }
+
+        function startBonusTimer() {
+            if (bonusInterval) {
+                clearInterval(bonusInterval);
+            }
+
+            bonusInterval = setInterval(() => {
+                if (bonusRemaining > 0) {
+                    bonusRemaining--;
+                }
+
+                updateBonusTimer();
+            }, 1000);
+        }
+
+        async function claimBonus() {
+            const button = document.getElementById("bonusButton");
+
+            if (bonusRemaining > 0) return;
+
+            button.disabled = true;
+            button.textContent = "Получение...";
+
+            try {
+                const response = await fetch(API_URL + "/bonus", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + sessionToken,
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.error || "Не удалось получить бонус."
+                    );
+                }
+
+                // Сервер возвращает награду в поле reward
+                const reward = Number(data.reward ?? data.amount ?? 0);
+
+                if (
+                    !Number.isFinite(reward) ||
+                    reward < 1000 ||
+                    reward > 30000
+                ) {
+                    throw new Error(
+                        "Сервер вернул некорректную награду."
+                    );
+                }
+
+                bonusRemaining = Number(
+                    data.remaining ?? data.available_in ?? 3600
+                );
+
+                showBonusMessage(
+                    "🎉 Получено +" +
+                    formatNumber(reward) +
+                    " виртов!"
+                );
+
+                await refreshBalances();
+
+            } catch (error) {
+                console.error("BONUS ERROR:", error);
+
+                showBonusMessage(
+                    "❌ " + error.message
+                );
+
+                await loadBonusStatus();
+
+            } finally {
+                updateBonusTimer();
+            }
+        }
+
+
+        // ==============================
+        // РУЛЕТКА
+        // ==============================
+
+        async function loadRouletteStatus() {
+            try {
+                const response = await fetch(API_URL + "/roulette", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + sessionToken
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.error || "Ошибка загрузки рулетки."
+                    );
+                }
+
+                rouletteRemaining = Number(
+                    data.available_in ?? data.remaining ?? 0
+                );
+
+                updateRouletteTimer();
+                startRouletteTimer();
+
+            } catch (error) {
+                console.error("ROULETTE STATUS ERROR:", error);
+
+                document.getElementById("rouletteTimer").textContent =
+                    "Не удалось загрузить таймер";
+            }
+        }
+
+        function updateRouletteTimer() {
+            const timer = document.getElementById("rouletteTimer");
+            const button = document.getElementById("rouletteButton");
+
+            if (rouletteRemaining <= 0) {
+                timer.textContent = "🎰 Бесплатный спин доступен!";
+                button.disabled = false;
+                button.textContent = "Крутить рулетку";
+            } else {
+                timer.textContent =
+                    "Следующий спин через " +
+                    formatTime(rouletteRemaining);
+
+                button.disabled = true;
+                button.textContent = "Подожди немного";
+            }
+        }
+
+        function startRouletteTimer() {
+            if (rouletteInterval) {
+                clearInterval(rouletteInterval);
+            }
+
+            rouletteInterval = setInterval(() => {
+                if (rouletteRemaining > 0) {
+                    rouletteRemaining--;
+                }
+
+                updateRouletteTimer();
+            }, 1000);
+        }
+
+        // Рисование рулетки
+        function drawRoulette() {
+            const canvas = document.getElementById("rouletteCanvas");
+            const ctx = canvas.getContext("2d");
+
+            const center = canvas.width / 2;
+            const radius = center - 8;
+
+            const colors = [
+                "#7655d9",
+                "#392a70",
+                "#a47bff",
+                "#49358c",
+                "#7655d9",
+                "#392a70",
+                "#a47bff",
+                "#49358c",
+                "#d7a93b",
+                "#b8862d",
+                "#e0bd58"
+            ];
+
+            const angle = (Math.PI * 2) / ROULETTE_REWARDS.length;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ROULETTE_REWARDS.forEach((reward, index) => {
+                const start = index * angle - Math.PI / 2;
+                const end = start + angle;
+
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.arc(center, center, radius, start, end);
+                ctx.closePath();
+
+                ctx.fillStyle = colors[index % colors.length];
+                ctx.fill();
+
+                ctx.strokeStyle = "#171322";
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                ctx.save();
+
+                ctx.translate(center, center);
+                ctx.rotate(start + angle / 2);
+
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 25px Arial";
+
+                const label = reward.type === "dk"
+                    ? reward.amount + " ДК"
+                    : formatNumber(reward.amount);
+
+                ctx.fillText(label, radius - 22, 8);
+
+                ctx.restore();
+            });
+
+            ctx.beginPath();
+            ctx.arc(center, center, 55, 0, Math.PI * 2);
+            ctx.fillStyle = "#171322";
+            ctx.fill();
+        }
+
+        let rouletteSpinning = false;
+
+        function animateRoulette(index) {
+            return new Promise(resolve => {
+                const wheel = document.getElementById("rouletteWheel");
+
+                const segment = 360 / ROULETTE_REWARDS.length;
+
+                // Указатель находится сверху.
+                const targetAngle =
+                    360 * 6 +
+                    (360 - (index * segment + segment / 2));
+
+                wheel.style.transition = "none";
+                wheel.style.transform = "rotate(0deg)";
+
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        wheel.style.transition =
+                            "transform 5s cubic-bezier(0.12, 0.75, 0.12, 1)";
+
+                        wheel.style.transform =
+                            "rotate(" + targetAngle + "deg)";
+
+                        setTimeout(resolve, 5200);
+                    });
+                });
+            });
+        }
+
+        async function spinRoulette() {
+            if (rouletteSpinning || rouletteRemaining > 0) return;
+
+            const button = document.getElementById("rouletteButton");
+
+            rouletteSpinning = true;
+            button.disabled = true;
+            button.textContent = "Крутится...";
+
+            showRouletteMessage("");
+
+            try {
+                const response = await fetch(API_URL + "/roulette", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + sessionToken,
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.error || "Не удалось запустить рулетку."
+                    );
+                }
+
+                const reward = data.reward || {
+                    amount: data.amount,
+                    type: data.type
+                };
+
+                const index = Number(data.index);
+
+                if (
+                    !Number.isInteger(index) ||
+                    index < 0 ||
+                    index >= ROULETTE_REWARDS.length
+                ) {
+                    throw new Error("Сервер вернул неверный результат.");
+                }
+
+                await animateRoulette(index);
+
+                const amount = Number(reward.amount);
+                const type = reward.type;
+
+                const rewardText = type === "dk"
+                    ? formatNumber(amount) + " ДК"
+                    : formatNumber(amount) + " виртов";
+
+                showRouletteMessage(
+                    "🎉 Поздравляем! Ты выиграл " + rewardText + "!"
+                );
+
+                rouletteRemaining = Number(
+                    data.remaining ?? data.available_in ?? 1800
+                );
+
+                await refreshBalances();
+
+            } catch (error) {
+                console.error("ROULETTE ERROR:", error);
+
+                showRouletteMessage(
+                    "❌ " + error.message
+                );
+
+                await loadRouletteStatus();
+
+            } finally {
+                rouletteSpinning = false;
+                updateRouletteTimer();
+            }
+        }
+
+
+        // ==============================
+        // ЗАПУСК MINI APP
+        // ==============================
+
+        drawRoulette();
+        initializeApp();
+
+    </script>
+</body>
+</html>            
